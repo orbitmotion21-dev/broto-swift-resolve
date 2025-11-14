@@ -1,15 +1,11 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { FileText, Shield, ArrowRight } from "lucide-react";
-
 export const Hero = () => {
-  return (
-    <section className="min-h-screen bg-gradient-hero flex items-center justify-center px-4 py-20">
+  return <section className="min-h-screen bg-gradient-hero flex items-center justify-center px-4 py-20">
       <div className="max-w-6xl mx-auto text-center">
         {/* Main Heading */}
-        <h1 className="text-6xl md:text-7xl font-bold text-foreground mb-4 animate-fade-in">
-          BrotoRaise
-        </h1>
+        <h1 className="text-6xl md:text-7xl font-bold text-foreground mb-4 animate-fade-in">Broto  Complaint</h1>
         
         {/* Subheading */}
         <p className="text-xl md:text-2xl text-muted-foreground mb-16 animate-fade-in-delay-1">
@@ -46,14 +42,10 @@ export const Hero = () => {
         </div>
 
         {/* CTA Button */}
-        <Button 
-          size="lg" 
-          className="text-lg px-8 py-6 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 animate-fade-in-delay-4 group"
-        >
+        <Button size="lg" className="text-lg px-8 py-6 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 animate-fade-in-delay-4 group">
           Get Started
           <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
         </Button>
       </div>
-    </section>
-  );
+    </section>;
 };
