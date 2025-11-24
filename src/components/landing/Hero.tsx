@@ -1,6 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { FileText, Shield, ArrowRight } from "lucide-react";
+import { Link } from "react-router-dom";
+
 export const Hero = () => {
   return <section className="min-h-screen bg-gradient-hero flex items-center justify-center px-4 py-20">
       <div className="max-w-6xl mx-auto text-center">
@@ -42,10 +44,12 @@ export const Hero = () => {
         </div>
 
         {/* CTA Button */}
-        <Button size="lg" className="text-lg px-8 py-6 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 animate-fade-in-delay-4 group">
-          Get Started
-          <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
-        </Button>
+        <Link to="/auth">
+          <Button size="lg" className="text-lg px-8 py-6 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 animate-fade-in-delay-4 group">
+            Get Started
+            <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+          </Button>
+        </Link>
       </div>
     </section>;
 };
