@@ -1,9 +1,11 @@
 import { useAuth } from '@/hooks/useAuth';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 
 const StudentDashboard = () => {
   const { profile, signOut } = useAuth();
+  const navigate = useNavigate();
 
   return (
     <div className="min-h-screen bg-background p-8">
@@ -41,7 +43,7 @@ const StudentDashboard = () => {
         <Card className="mt-8 p-8 text-center">
           <h2 className="text-2xl font-semibold mb-4">No Complaints Yet</h2>
           <p className="text-muted-foreground mb-6">Start by submitting your first complaint</p>
-          <Button size="lg">Submit New Complaint</Button>
+          <Button size="lg" onClick={() => navigate('/student/submit')}>Submit New Complaint</Button>
         </Card>
       </div>
     </div>
