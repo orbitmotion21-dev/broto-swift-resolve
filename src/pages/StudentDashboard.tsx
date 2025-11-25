@@ -71,7 +71,6 @@ const StudentDashboard = () => {
         <div className="flex justify-between items-center mb-8">
           <div>
             <h1 className="text-4xl font-bold text-foreground mb-2">Student Dashboard</h1>
-            <p className="text-muted-foreground">Welcome back, {profile?.name}!</p>
           </div>
           <Button variant="outline" onClick={signOut}>
             Sign Out
