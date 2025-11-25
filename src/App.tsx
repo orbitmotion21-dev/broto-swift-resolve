@@ -10,6 +10,7 @@ import Auth from "./pages/Auth";
 import StudentDashboard from "./pages/StudentDashboard";
 import SubmitComplaint from "./pages/SubmitComplaint";
 import ComplaintDetails from "./pages/ComplaintDetails";
+import ProfileSettings from "./pages/ProfileSettings";
 import AdminDashboard from "./pages/AdminDashboard";
 import NotFound from "./pages/NotFound";
 
@@ -46,6 +47,14 @@ const App = () => (
               element={
                 <ProtectedRoute requiredRole="student">
                   <ComplaintDetails />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/student/settings" 
+              element={
+                <ProtectedRoute requiredRole="student">
+                  <ProfileSettings />
                 </ProtectedRoute>
               } 
             />

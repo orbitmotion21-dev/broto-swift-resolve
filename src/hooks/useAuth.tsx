@@ -9,6 +9,7 @@ interface Profile {
   name: string;
   phone: string;
   batch: string | null;
+  created_at: string;
 }
 
 interface UserRole {
@@ -24,6 +25,7 @@ interface AuthContextType {
   signUp: (email: string, password: string, metadata: { name: string; phone: string; batch?: string }) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
+  refreshProfile: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -168,6 +170,25 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  const refreshProfile = async () => {
+    if (!user?.id) return;
+    
+    try {
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+
+      if (profileError) throw profileError;
+      setProfile(profileData);
+      toast.success('Profile updated successfully');
+    } catch (error) {
+      console.error('Error refreshing profile:', error);
+      toast.error('Failed to refresh profile');
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -179,6 +200,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         signUp,
         signIn,
         signOut,
+        refreshProfile,
       }}
     >
       {children}
