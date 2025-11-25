@@ -9,6 +9,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import StudentDashboard from "./pages/StudentDashboard";
 import SubmitComplaint from "./pages/SubmitComplaint";
+import ComplaintDetails from "./pages/ComplaintDetails";
 import AdminDashboard from "./pages/AdminDashboard";
 import NotFound from "./pages/NotFound";
 
@@ -37,6 +38,14 @@ const App = () => (
               element={
                 <ProtectedRoute requiredRole="student">
                   <SubmitComplaint />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/student/complaint/:id" 
+              element={
+                <ProtectedRoute requiredRole="student">
+                  <ComplaintDetails />
                 </ProtectedRoute>
               } 
             />
