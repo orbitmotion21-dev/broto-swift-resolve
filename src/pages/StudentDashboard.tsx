@@ -3,10 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, Clock, MapPin, AlertCircle } from 'lucide-react';
-import { format } from 'date-fns';
+import { Loader2, Clock, MapPin, AlertCircle, Settings, Bell, User, TrendingUp, AlertTriangle } from 'lucide-react';
+import { format, formatDistanceToNow } from 'date-fns';
 
 const StudentDashboard = () => {
   const { profile, user, signOut } = useAuth();
@@ -30,10 +31,64 @@ const StudentDashboard = () => {
     enabled: !!user?.id,
   });
 
+  // Fetch notifications for recent activity
+  const { data: notifications } = useQuery({
+    queryKey: ['student-notifications', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      
+      const { data, error } = await supabase
+        .from('notifications')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(5);
+
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!user?.id,
+  });
+
   // Calculate stats
   const totalComplaints = complaints?.length || 0;
   const pendingCount = complaints?.filter(c => c.status === 'Pending').length || 0;
+  const inProgressCount = complaints?.filter(c => c.status === 'In Progress').length || 0;
   const resolvedCount = complaints?.filter(c => c.status === 'Resolved').length || 0;
+  const highPriorityCount = complaints?.filter(c => c.urgency === 'High').length || 0;
+  const responseRate = totalComplaints > 0 
+    ? Math.round(((resolvedCount + inProgressCount) / totalComplaints) * 100) 
+    : 0;
+
+  // Get time-based greeting
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good morning';
+    if (hour < 18) return 'Good afternoon';
+    return 'Good evening';
+  };
+
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map((n) => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
+  const getNotificationIcon = (type: string) => {
+    switch (type) {
+      case 'status_update':
+        return <TrendingUp className="w-4 h-4" />;
+      case 'video_call_request':
+        return <Bell className="w-4 h-4" />;
+      case 'new_complaint':
+        return <AlertCircle className="w-4 h-4" />;
+      default:
+        return <Bell className="w-4 h-4" />;
+    }
+  };
 
   // Status badge variant mapping
   const getStatusVariant = (status: string) => {
@@ -68,34 +123,117 @@ const StudentDashboard = () => {
   return (
     <div className="min-h-screen bg-background p-8">
       <div className="max-w-7xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-4xl font-bold text-foreground mb-2">Student Dashboard</h1>
+        {/* Header with greeting and actions */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+          <div className="flex items-center gap-4">
+            <Avatar className="w-16 h-16">
+              <AvatarFallback className="bg-primary text-primary-foreground text-lg">
+                {profile?.name ? getInitials(profile.name) : <User className="w-6 h-6" />}
+              </AvatarFallback>
+            </Avatar>
+            <div>
+              <h1 className="text-3xl font-bold text-foreground">
+                {getGreeting()}, {profile?.name?.split(' ')[0] || 'Student'}! 👋
+              </h1>
+              <div className="flex items-center gap-3 text-sm text-muted-foreground mt-1">
+                {profile?.batch && <span>Batch: {profile.batch}</span>}
+                {profile?.batch && <span>•</span>}
+                <span>Member since {format(new Date(profile?.created_at || new Date()), 'MMM yyyy')}</span>
+              </div>
+            </div>
           </div>
-          <Button variant="outline" onClick={signOut}>
-            Sign Out
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="ghost" size="icon" onClick={() => navigate('/student/settings')}>
+              <Settings className="w-5 h-5" />
+            </Button>
+            <Button variant="outline" onClick={signOut}>
+              Sign Out
+            </Button>
+          </div>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-6 mb-8">
-          <Card className="p-6">
-            <h3 className="text-xl font-semibold mb-2">My Complaints</h3>
-            <p className="text-3xl font-bold text-primary">{totalComplaints}</p>
-            <p className="text-sm text-muted-foreground mt-2">Total complaints submitted</p>
+        {/* Enhanced Stats Grid */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
+          <Card className="p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <AlertCircle className="w-4 h-4 text-primary" />
+              <h3 className="text-sm font-medium text-muted-foreground">Total</h3>
+            </div>
+            <p className="text-2xl font-bold text-foreground">{totalComplaints}</p>
           </Card>
 
-          <Card className="p-6">
-            <h3 className="text-xl font-semibold mb-2">Pending</h3>
-            <p className="text-3xl font-bold text-accent">{pendingCount}</p>
-            <p className="text-sm text-muted-foreground mt-2">Awaiting review</p>
+          <Card className="p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <Clock className="w-4 h-4 text-accent" />
+              <h3 className="text-sm font-medium text-muted-foreground">Pending</h3>
+            </div>
+            <p className="text-2xl font-bold text-accent">{pendingCount}</p>
           </Card>
 
-          <Card className="p-6">
-            <h3 className="text-xl font-semibold mb-2">Resolved</h3>
-            <p className="text-3xl font-bold text-primary">{resolvedCount}</p>
-            <p className="text-sm text-muted-foreground mt-2">Successfully resolved</p>
+          <Card className="p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <TrendingUp className="w-4 h-4 text-primary" />
+              <h3 className="text-sm font-medium text-muted-foreground">In Progress</h3>
+            </div>
+            <p className="text-2xl font-bold text-primary">{inProgressCount}</p>
+          </Card>
+
+          <Card className="p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <AlertTriangle className="w-4 h-4 text-destructive" />
+              <h3 className="text-sm font-medium text-muted-foreground">High Priority</h3>
+            </div>
+            <p className="text-2xl font-bold text-destructive">{highPriorityCount}</p>
+          </Card>
+
+          <Card className="p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <TrendingUp className="w-4 h-4 text-primary" />
+              <h3 className="text-sm font-medium text-muted-foreground">Response Rate</h3>
+            </div>
+            <p className="text-2xl font-bold text-primary">{responseRate}%</p>
           </Card>
         </div>
+
+        {/* Recent Activity Section */}
+        {notifications && notifications.length > 0 && (
+          <Card className="mb-8">
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <Bell className="w-5 h-5 text-primary" />
+                <h2 className="text-xl font-semibold">Recent Activity</h2>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {notifications.map((notification) => (
+                  <div
+                    key={notification.id}
+                    className="flex items-start gap-3 p-3 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer"
+                    onClick={() => {
+                      if (notification.complaint_id) {
+                        navigate(`/student/complaint/${notification.complaint_id}`);
+                      }
+                    }}
+                  >
+                    <div className="mt-1 text-primary">
+                      {getNotificationIcon(notification.type)}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-foreground">{notification.message}</p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
+                      </p>
+                    </div>
+                    {!notification.read && (
+                      <Badge variant="default" className="shrink-0">New</Badge>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {isLoading ? (
           <div className="flex justify-center items-center py-16">
