@@ -1,15 +1,21 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, ArrowLeft, MapPin, Clock, AlertCircle, FileText } from 'lucide-react';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { Loader2, ArrowLeft, MapPin, Clock, AlertCircle, FileText, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
+import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
 
 const ComplaintDetails = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { toast } = useToast();
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
 
   // Fetch complaint details
   const { data: complaint, isLoading: complaintLoading } = useQuery({
@@ -47,6 +53,50 @@ const ComplaintDetails = () => {
   });
 
   const isLoading = complaintLoading || mediaLoading;
+
+  // Delete mutation
+  const deleteMutation = useMutation({
+    mutationFn: async (complaintId: string) => {
+      // First, delete media files from storage
+      if (media && media.length > 0) {
+        for (const item of media) {
+          const url = new URL(item.file_url);
+          const pathParts = url.pathname.split('/');
+          const bucketIndex = pathParts.indexOf('storage') + 2;
+          const bucket = pathParts[bucketIndex];
+          const filePath = pathParts.slice(bucketIndex + 1).join('/');
+          
+          if (bucket && filePath) {
+            await supabase.storage.from(bucket).remove([filePath]);
+          }
+        }
+      }
+
+      // Delete the complaint (cascade will handle media records)
+      const { error } = await supabase
+        .from('complaints')
+        .delete()
+        .eq('id', complaintId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Complaint Deleted',
+        description: 'Your complaint has been successfully deleted.',
+      });
+      queryClient.invalidateQueries({ queryKey: ['student-complaints'] });
+      navigate('/student/dashboard');
+    },
+    onError: (error) => {
+      toast({
+        title: 'Error',
+        description: 'Failed to delete complaint. Please try again.',
+        variant: 'destructive',
+      });
+      console.error('Delete error:', error);
+    },
+  });
 
   const getStatusVariant = (status: string) => {
     switch (status) {
@@ -97,18 +147,55 @@ const ComplaintDetails = () => {
 
   const images = media?.filter(m => m.file_type.startsWith('image/')) || [];
   const videos = media?.filter(m => m.file_type.startsWith('video/')) || [];
+  const canDelete = complaint.status === 'Pending' && complaint.student_id === user?.id;
 
   return (
     <div className="min-h-screen bg-background p-8">
       <div className="max-w-4xl mx-auto">
-        <Button 
-          variant="outline" 
-          onClick={() => navigate('/student/dashboard')}
-          className="mb-6"
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back to Dashboard
-        </Button>
+        <div className="flex justify-between items-center mb-6">
+          <Button 
+            variant="outline" 
+            onClick={() => navigate('/student/dashboard')}
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Dashboard
+          </Button>
+
+          {canDelete && (
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="destructive" disabled={deleteMutation.isPending}>
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Delete Complaint
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This action cannot be undone. This will permanently delete your complaint and all associated media files.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={() => deleteMutation.mutate(complaint.id)}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  >
+                    {deleteMutation.isPending ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Deleting...
+                      </>
+                    ) : (
+                      'Delete'
+                    )}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          )}
+        </div>
 
         <Card>
           <CardHeader>
