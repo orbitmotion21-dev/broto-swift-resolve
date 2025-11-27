@@ -4,14 +4,18 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { useQuery } from '@tanstack/react-query';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, Clock, MapPin, AlertCircle, Settings, Bell, User, TrendingUp, AlertTriangle } from 'lucide-react';
+import { Loader2, Clock, MapPin, AlertCircle, Settings, Bell, User, TrendingUp, AlertTriangle, Trash2 } from 'lucide-react';
 import { format, formatDistanceToNow } from 'date-fns';
+import { useToast } from '@/hooks/use-toast';
 
 const StudentDashboard = () => {
   const { profile, user, signOut } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   // Fetch complaints for the current user
   const { data: complaints, isLoading } = useQuery({
@@ -119,6 +123,55 @@ const StudentDashboard = () => {
         return 'text-muted-foreground';
     }
   };
+
+  // Delete mutation
+  const deleteMutation = useMutation({
+    mutationFn: async (complaintId: string) => {
+      // Fetch media for this complaint
+      const { data: media } = await supabase
+        .from('complaint_media')
+        .select('file_url')
+        .eq('complaint_id', complaintId);
+
+      // Delete media files from storage
+      if (media && media.length > 0) {
+        for (const item of media) {
+          const url = new URL(item.file_url);
+          const pathParts = url.pathname.split('/');
+          const bucketIndex = pathParts.indexOf('storage') + 2;
+          const bucket = pathParts[bucketIndex];
+          const filePath = pathParts.slice(bucketIndex + 1).join('/');
+          
+          if (bucket && filePath) {
+            await supabase.storage.from(bucket).remove([filePath]);
+          }
+        }
+      }
+
+      // Delete the complaint
+      const { error } = await supabase
+        .from('complaints')
+        .delete()
+        .eq('id', complaintId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Complaint Deleted',
+        description: 'Your complaint has been successfully deleted.',
+      });
+      queryClient.invalidateQueries({ queryKey: ['student-complaints'] });
+    },
+    onError: (error) => {
+      toast({
+        title: 'Error',
+        description: 'Failed to delete complaint. Please try again.',
+        variant: 'destructive',
+      });
+      console.error('Delete error:', error);
+    },
+  });
 
   return (
     <div className="min-h-screen bg-background p-8">
@@ -250,12 +303,14 @@ const StudentDashboard = () => {
               {complaints.map((complaint) => (
                 <Card 
                   key={complaint.id}
-                  className="cursor-pointer transition-all hover:shadow-lg"
-                  onClick={() => navigate(`/student/complaint/${complaint.id}`)}
+                  className="transition-all hover:shadow-lg"
                 >
                   <CardHeader>
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1">
+                    <div className="flex justify-between items-start gap-4">
+                      <div 
+                        className="flex-1 cursor-pointer"
+                        onClick={() => navigate(`/student/complaint/${complaint.id}`)}
+                      >
                         <div className="flex items-center gap-2 mb-2">
                           <h3 className="text-xl font-semibold">{complaint.title}</h3>
                           <Badge variant={getStatusVariant(complaint.status)}>
@@ -266,9 +321,43 @@ const StudentDashboard = () => {
                           {complaint.description}
                         </p>
                       </div>
+                      {complaint.status === 'Pending' && (
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button 
+                              variant="ghost" 
+                              size="icon"
+                              className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent onClick={(e) => e.stopPropagation()}>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Delete Complaint?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                This will permanently delete "{complaint.title}" and all associated files. This action cannot be undone.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  deleteMutation.mutate(complaint.id);
+                                }}
+                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                              >
+                                Delete
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      )}
                     </div>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent onClick={() => navigate(`/student/complaint/${complaint.id}`)} className="cursor-pointer">
                     <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
                       <div className="flex items-center gap-1">
                         <AlertCircle className={`w-4 h-4 ${getUrgencyColor(complaint.urgency)}`} />
