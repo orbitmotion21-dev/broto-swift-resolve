@@ -162,4 +162,39 @@ All colors MUST be HSL.
     @apply rounded-full transition-all duration-200;
     @apply hover:bg-destructive/15 hover:text-destructive;
   }
+
+  /* Status badge animations */
+  .animate-pulse-pending {
+    animation: pulse-pending 2s ease-in-out infinite;
+  }
+  
+  .animate-success {
+    animation: success 0.5s ease-out forwards;
+  }
+  
+  .animate-spin-slow {
+    animation: spin-slow 2s linear infinite;
+  }
+  
+  @keyframes pulse-pending {
+    0%, 100% { 
+      opacity: 1;
+      box-shadow: 0 0 0 0 hsl(222 90% 63% / 0.4);
+    }
+    50% { 
+      opacity: 0.85;
+      box-shadow: 0 0 8px 2px hsl(222 90% 63% / 0.2);
+    }
+  }
+  
+  @keyframes success {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.08); }
+    100% { transform: scale(1); }
+  }
+  
+  @keyframes spin-slow {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
 }
