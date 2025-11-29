@@ -12,6 +12,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { ArrowLeft, Upload, X, Loader2 } from 'lucide-react';
+import VoiceInputButton from '@/components/VoiceInputButton';
 
 const complaintSchema = z.object({
   title: z.string().min(1, 'Title is required').max(100, 'Title must be less than 100 characters'),
@@ -32,7 +33,7 @@ const SubmitComplaint = () => {
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [videoPreview, setVideoPreview] = useState<string | null>(null);
 
-  const { register, handleSubmit, formState: { errors } } = useForm<ComplaintFormData>({
+  const { register, handleSubmit, formState: { errors }, setValue } = useForm<ComplaintFormData>({
     resolver: zodResolver(complaintSchema),
     defaultValues: {
       urgency: 'Medium',
@@ -229,7 +230,15 @@ const SubmitComplaint = () => {
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             <div>
-              <Label htmlFor="title">Title *</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="title">Title *</Label>
+                <VoiceInputButton 
+                  onTranscript={(text) => {
+                    const currentValue = (document.getElementById('title') as HTMLInputElement)?.value || '';
+                    setValue('title', currentValue ? `${currentValue} ${text}` : text);
+                  }}
+                />
+              </div>
               <Input
                 id="title"
                 {...register('title')}
@@ -261,7 +270,15 @@ const SubmitComplaint = () => {
             </div>
 
             <div>
-              <Label htmlFor="description">Description *</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="description">Description *</Label>
+                <VoiceInputButton 
+                  onTranscript={(text) => {
+                    const currentValue = (document.getElementById('description') as HTMLTextAreaElement)?.value || '';
+                    setValue('description', currentValue ? `${currentValue} ${text}` : text);
+                  }}
+                />
+              </div>
               <Textarea
                 id="description"
                 {...register('description')}
