@@ -11,6 +11,7 @@ import { Loader2, ArrowLeft, MapPin, Clock, AlertCircle, FileText, User, Phone, 
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { useState } from 'react';
+import VoiceInputButton from '@/components/VoiceInputButton';
 
 const AdminComplaintDetails = () => {
   const { id } = useParams<{ id: string }>();
@@ -449,7 +450,14 @@ const AdminComplaintDetails = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="resolution">Resolution Notes</Label>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="resolution">Resolution Notes</Label>
+                    <VoiceInputButton 
+                      onTranscript={(text) => {
+                        setResolutionNotes(prev => prev ? `${prev} ${text}` : text);
+                      }}
+                    />
+                  </div>
                   <Textarea
                     id="resolution"
                     placeholder="Add notes about the resolution..."
