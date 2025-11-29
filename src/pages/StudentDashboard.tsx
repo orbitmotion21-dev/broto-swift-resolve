@@ -10,6 +10,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Loader2, Clock, MapPin, AlertCircle, Settings, Bell, User, TrendingUp, AlertTriangle, Trash2 } from 'lucide-react';
 import { format, formatDistanceToNow } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
+import VideoCallPopup from '@/components/VideoCallPopup';
 
 const StudentDashboard = () => {
   const { profile, user, signOut } = useAuth();
@@ -390,6 +391,8 @@ const StudentDashboard = () => {
           </Card>
         )}
       </div>
+      
+      <VideoCallPopup />
     </div>
   );
 };

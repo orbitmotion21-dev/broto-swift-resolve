@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Loader2, ArrowLeft, MapPin, Clock, AlertCircle, FileText, Trash2 } from 'lucide-react';
+import { Loader2, ArrowLeft, MapPin, Clock, AlertCircle, FileText, Trash2, Video } from 'lucide-react';
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
@@ -53,6 +53,34 @@ const ComplaintDetails = () => {
   });
 
   const isLoading = complaintLoading || mediaLoading;
+
+  // Fetch active video call
+  const { data: activeVideoCall } = useQuery({
+    queryKey: ['student-video-call', id],
+    queryFn: async () => {
+      if (!id) return null;
+      
+      const { data, error } = await supabase
+        .from('video_calls')
+        .select('*')
+        .eq('complaint_id', id)
+        .eq('status', 'active')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!id,
+    refetchInterval: 5000,
+  });
+
+  const handleJoinCall = () => {
+    if (!activeVideoCall) return;
+    const roomUrl = `https://broto-raise.daily.co/${activeVideoCall.room_id}`;
+    window.open(roomUrl, '_blank', 'width=1200,height=800');
+  };
 
   // Delete mutation
   const deleteMutation = useMutation({
@@ -196,6 +224,26 @@ const ComplaintDetails = () => {
             </AlertDialog>
           )}
         </div>
+
+        {activeVideoCall && (
+          <Card className="mb-6 bg-primary/10 border-primary">
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Video className="w-5 h-5 text-primary animate-pulse" />
+                  <div>
+                    <p className="font-semibold">Video Call Active</p>
+                    <p className="text-sm text-muted-foreground">Admin is waiting for you to join</p>
+                  </div>
+                </div>
+                <Button onClick={handleJoinCall}>
+                  <Video className="w-4 h-4 mr-2" />
+                  Join Call
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         <Card>
           <CardHeader>
