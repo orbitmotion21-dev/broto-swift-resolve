@@ -103,7 +103,7 @@ const Auth = () => {
     <div className="min-h-screen flex items-center justify-center bg-gradient-hero px-4 py-12">
       <Card className="w-full max-w-md p-8 shadow-card">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2">Welcome to Broto Complaint</h1>
+          <h1 className="text-3xl font-bold text-foreground mb-2">Welcome to Brotodesk</h1>
           <p className="text-muted-foreground">Sign in to your account or create a new one</p>
         </div>
 

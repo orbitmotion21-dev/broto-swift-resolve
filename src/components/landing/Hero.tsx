@@ -7,7 +7,7 @@ export const Hero = () => {
   return <section className="min-h-screen bg-gradient-hero flex items-center justify-center px-4 py-20">
       <div className="max-w-6xl mx-auto text-center">
         {/* Main Heading */}
-        <h1 className="text-6xl md:text-7xl font-bold text-foreground mb-4 animate-fade-in">Broto  Complaint</h1>
+        <h1 className="text-6xl md:text-7xl font-bold text-foreground mb-4 animate-fade-in">Brotodesk</h1>
         
         {/* Subheading */}
         <p className="text-xl md:text-2xl text-muted-foreground mb-16 animate-fade-in-delay-1">
