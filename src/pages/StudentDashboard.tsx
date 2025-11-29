@@ -9,7 +9,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, Clock, MapPin, AlertCircle, Settings, Bell, User, TrendingUp, AlertTriangle, Trash2 } from 'lucide-react';
+import { Loader2, Clock, MapPin, AlertCircle, Settings, Bell, User, TrendingUp, AlertTriangle, Trash2, Pencil } from 'lucide-react';
 import { format, formatDistanceToNow } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import VideoCallPopup from '@/components/VideoCallPopup';
@@ -374,38 +374,51 @@ const StudentDashboard = () => {
                         </p>
                       </div>
                       {complaint.status === 'Pending' && (
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button 
-                              variant="ghost" 
-                              size="icon"
-                              className="text-muted-foreground hover:text-destructive hover:bg-destructive/15"
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent onClick={(e) => e.stopPropagation()}>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Delete Complaint?</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                This will permanently delete "{complaint.title}" and all associated files. This action cannot be undone.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  deleteMutation.mutate(complaint.id);
-                                }}
-                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        <div className="flex gap-1">
+                          <Button 
+                            variant="ghost" 
+                            size="icon"
+                            className="text-muted-foreground hover:text-accent hover:bg-accent/15 rounded-full"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              navigate(`/student/complaint/${complaint.id}/edit`);
+                            }}
+                          >
+                            <Pencil className="w-4 h-4" />
+                          </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button 
+                                variant="ghost" 
+                                size="icon"
+                                className="text-muted-foreground hover:text-destructive hover:bg-destructive/15 rounded-full"
+                                onClick={(e) => e.stopPropagation()}
                               >
-                                Delete
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent onClick={(e) => e.stopPropagation()}>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Delete Complaint?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  This will permanently delete "{complaint.title}" and all associated files. This action cannot be undone.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    deleteMutation.mutate(complaint.id);
+                                  }}
+                                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                >
+                                  Delete
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
                       )}
                     </div>
                   </CardHeader>

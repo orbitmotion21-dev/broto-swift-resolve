@@ -7,7 +7,7 @@ export const Footer = () => {
         <div className="grid md:grid-cols-3 gap-8 mb-8">
           {/* Brand */}
           <div>
-            <h3 className="text-2xl font-bold text-primary mb-2">BrotoRaise</h3>
+            <h3 className="text-2xl font-bold text-primary mb-2">Brotodesk</h3>
             <p className="text-muted-foreground text-sm">
               Modern complaint management for Brototype students and administrators
             </p>
@@ -81,7 +81,7 @@ export const Footer = () => {
         {/* Copyright */}
         <div className="pt-8 border-t border-border text-center">
           <p className="text-muted-foreground text-sm">
-            © {new Date().getFullYear()} BrotoRaise. Built for Brototype with ❤️
+            © {new Date().getFullYear()} Brotodesk. Built for Brototype with ❤️
           </p>
         </div>
       </div>
