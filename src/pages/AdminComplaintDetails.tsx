@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { StatusBadge } from '@/components/StatusBadge';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
@@ -169,20 +170,6 @@ const AdminComplaintDetails = () => {
     window.open(roomUrl, '_blank', 'width=1200,height=800');
   };
 
-  const getStatusVariant = (status: string) => {
-    switch (status) {
-      case 'Pending':
-        return 'secondary';
-      case 'In Progress':
-        return 'default';
-      case 'Resolved':
-        return 'outline';
-      case 'Cancelled':
-        return 'destructive';
-      default:
-        return 'secondary';
-    }
-  };
 
   const getUrgencyColor = (urgency: string) => {
     switch (urgency) {
@@ -240,9 +227,7 @@ const AdminComplaintDetails = () => {
                   <div>
                     <CardTitle className="text-3xl mb-2">{complaint.title}</CardTitle>
                     <div className="flex flex-wrap gap-2 items-center">
-                      <Badge variant={getStatusVariant(complaint.status)}>
-                        {complaint.status}
-                      </Badge>
+                      <StatusBadge status={complaint.status} />
                       <div className={`flex items-center gap-1 text-sm ${getUrgencyColor(complaint.urgency)}`}>
                         <AlertCircle className="w-4 h-4" />
                         <span>{complaint.urgency} Priority</span>

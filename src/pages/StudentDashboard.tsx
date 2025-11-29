@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { StatusBadge } from '@/components/StatusBadge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -95,21 +96,6 @@ const StudentDashboard = () => {
     }
   };
 
-  // Status badge variant mapping
-  const getStatusVariant = (status: string) => {
-    switch (status) {
-      case 'Pending':
-        return 'secondary';
-      case 'In Progress':
-        return 'default';
-      case 'Resolved':
-        return 'outline';
-      case 'Rejected':
-        return 'destructive';
-      default:
-        return 'secondary';
-    }
-  };
 
   // Urgency color mapping
   const getUrgencyColor = (urgency: string) => {
@@ -319,9 +305,7 @@ const StudentDashboard = () => {
                       >
                         <div className="flex items-center gap-2 mb-2">
                           <h3 className="text-xl font-semibold">{complaint.title}</h3>
-                          <Badge variant={getStatusVariant(complaint.status)}>
-                            {complaint.status}
-                          </Badge>
+                          <StatusBadge status={complaint.status} />
                         </div>
                         <p className="text-sm text-muted-foreground line-clamp-2">
                           {complaint.description}

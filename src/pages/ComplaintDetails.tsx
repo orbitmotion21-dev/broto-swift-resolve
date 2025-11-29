@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { StatusBadge } from '@/components/StatusBadge';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Loader2, ArrowLeft, MapPin, Clock, AlertCircle, FileText, Trash2, Video } from 'lucide-react';
 import { format } from 'date-fns';
@@ -126,20 +127,6 @@ const ComplaintDetails = () => {
     },
   });
 
-  const getStatusVariant = (status: string) => {
-    switch (status) {
-      case 'Pending':
-        return 'secondary';
-      case 'In Progress':
-        return 'default';
-      case 'Resolved':
-        return 'outline';
-      case 'Rejected':
-        return 'destructive';
-      default:
-        return 'secondary';
-    }
-  };
 
   const getUrgencyColor = (urgency: string) => {
     switch (urgency) {
@@ -251,9 +238,7 @@ const ComplaintDetails = () => {
               <div>
                 <CardTitle className="text-3xl mb-2">{complaint.title}</CardTitle>
                 <div className="flex flex-wrap gap-2 items-center">
-                  <Badge variant={getStatusVariant(complaint.status)}>
-                    {complaint.status}
-                  </Badge>
+                  <StatusBadge status={complaint.status} />
                   <div className={`flex items-center gap-1 text-sm ${getUrgencyColor(complaint.urgency)}`}>
                     <AlertCircle className="w-4 h-4" />
                     <span>{complaint.urgency} Priority</span>

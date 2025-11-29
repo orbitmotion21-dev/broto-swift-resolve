@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { StatusBadge } from '@/components/StatusBadge';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2, Clock, AlertCircle, TrendingUp, CheckCircle, FileText, MapPin } from 'lucide-react';
@@ -39,21 +40,6 @@ const AdminDashboard = () => {
   const inProgressCount = complaints?.filter(c => c.status === 'In Progress').length || 0;
   const resolvedCount = complaints?.filter(c => c.status === 'Resolved').length || 0;
 
-  // Status badge variant mapping
-  const getStatusVariant = (status: string) => {
-    switch (status) {
-      case 'Pending':
-        return 'secondary';
-      case 'In Progress':
-        return 'default';
-      case 'Resolved':
-        return 'outline';
-      case 'Cancelled':
-        return 'destructive';
-      default:
-        return 'secondary';
-    }
-  };
 
   // Urgency color mapping
   const getUrgencyColor = (urgency: string) => {
@@ -142,9 +128,7 @@ const AdminDashboard = () => {
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2">
                           <h3 className="text-xl font-semibold">{complaint.title}</h3>
-                          <Badge variant={getStatusVariant(complaint.status)}>
-                            {complaint.status}
-                          </Badge>
+                          <StatusBadge status={complaint.status} />
                         </div>
                         <p className="text-sm text-muted-foreground line-clamp-2">
                           {complaint.description}
