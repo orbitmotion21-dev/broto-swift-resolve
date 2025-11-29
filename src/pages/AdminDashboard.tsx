@@ -1,3 +1,4 @@
+import { useState, useMemo } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -8,10 +9,22 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2, Clock, AlertCircle, TrendingUp, CheckCircle, FileText, MapPin } from 'lucide-react';
 import { format } from 'date-fns';
+import { ComplaintFilters, FilterState } from '@/components/ComplaintFilters';
 
 const AdminDashboard = () => {
   const { profile, signOut } = useAuth();
   const navigate = useNavigate();
+
+  // Filter state
+  const [filters, setFilters] = useState<FilterState>({
+    search: '',
+    status: [],
+    category: [],
+    urgency: [],
+    dateRange: null,
+    studentName: '',
+    batch: '',
+  });
 
   // Fetch all complaints with student profiles
   const { data: complaints, isLoading } = useQuery({
@@ -34,11 +47,66 @@ const AdminDashboard = () => {
     },
   });
 
-  // Calculate statistics
-  const totalComplaints = complaints?.length || 0;
-  const pendingCount = complaints?.filter(c => c.status === 'Pending').length || 0;
-  const inProgressCount = complaints?.filter(c => c.status === 'In Progress').length || 0;
-  const resolvedCount = complaints?.filter(c => c.status === 'Resolved').length || 0;
+  // Filter complaints client-side
+  const filteredComplaints = useMemo(() => {
+    if (!complaints) return [];
+    
+    return complaints.filter(complaint => {
+      // Text search (title + description)
+      if (filters.search) {
+        const searchLower = filters.search.toLowerCase();
+        if (!complaint.title.toLowerCase().includes(searchLower) &&
+            !complaint.description.toLowerCase().includes(searchLower)) {
+          return false;
+        }
+      }
+      
+      // Status filter
+      if (filters.status.length > 0 && !filters.status.includes(complaint.status)) {
+        return false;
+      }
+      
+      // Category filter
+      if (filters.category.length > 0 && !filters.category.includes(complaint.category)) {
+        return false;
+      }
+      
+      // Urgency filter
+      if (filters.urgency.length > 0 && !filters.urgency.includes(complaint.urgency)) {
+        return false;
+      }
+      
+      // Date range filter
+      if (filters.dateRange) {
+        const complaintDate = new Date(complaint.created_at);
+        if (filters.dateRange.from && complaintDate < filters.dateRange.from) return false;
+        if (filters.dateRange.to && complaintDate > filters.dateRange.to) return false;
+      }
+
+      // Student name filter
+      if (filters.studentName && complaint.profiles) {
+        const nameLower = filters.studentName.toLowerCase();
+        if (!complaint.profiles.name.toLowerCase().includes(nameLower)) {
+          return false;
+        }
+      }
+
+      // Batch filter
+      if (filters.batch && complaint.profiles?.batch) {
+        if (!complaint.profiles.batch.toLowerCase().includes(filters.batch.toLowerCase())) {
+          return false;
+        }
+      }
+      
+      return true;
+    });
+  }, [complaints, filters]);
+
+  // Calculate statistics based on filtered results
+  const totalComplaints = filteredComplaints?.length || 0;
+  const pendingCount = filteredComplaints?.filter(c => c.status === 'Pending').length || 0;
+  const inProgressCount = filteredComplaints?.filter(c => c.status === 'In Progress').length || 0;
+  const resolvedCount = filteredComplaints?.filter(c => c.status === 'Resolved').length || 0;
 
 
   // Urgency color mapping
@@ -115,9 +183,21 @@ const AdminDashboard = () => {
         ) : complaints && complaints.length > 0 ? (
           <div className="space-y-4">
             <h2 className="text-2xl font-semibold mb-4">All Complaints</h2>
+
+            {/* Filter Bar with Admin-specific filters */}
+            <ComplaintFilters 
+              filters={filters}
+              onFilterChange={setFilters}
+              showStudentFilter={true}
+            />
             
-            <div className="grid gap-4">
-              {complaints.map((complaint) => (
+            {filteredComplaints.length === 0 ? (
+              <Card className="p-8 text-center">
+                <p className="text-muted-foreground">No complaints match your filters</p>
+              </Card>
+            ) : (
+              <div className="grid gap-4">
+                {filteredComplaints.map((complaint) => (
                 <Card 
                   key={complaint.id}
                   className="cursor-pointer transition-all hover:shadow-lg"
@@ -164,8 +244,9 @@ const AdminDashboard = () => {
                     </div>
                   </CardContent>
                 </Card>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         ) : (
           <Card className="mt-8 p-8 text-center">

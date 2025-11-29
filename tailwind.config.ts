@@ -109,18 +109,43 @@ export default {
             transform: "scale(1)",
           },
         },
-        "spin-slow": {
-          "0%": { transform: "rotate(0deg)" },
-          "100%": { transform: "rotate(360deg)" },
-        },
+      "spin-slow": {
+        "0%": { transform: "rotate(0deg)" },
+        "100%": { transform: "rotate(360deg)" },
       },
+      // Dropdown animations
+      "dropdown-in": {
+        "0%": { opacity: "0", transform: "translateY(-8px) scale(0.95)" },
+        "100%": { opacity: "1", transform: "translateY(0) scale(1)" }
+      },
+      "dropdown-out": {
+        "0%": { opacity: "1", transform: "translateY(0) scale(1)" },
+        "100%": { opacity: "0", transform: "translateY(-8px) scale(0.95)" }
+      },
+      // Filter badge pop
+      "badge-pop": {
+        "0%": { transform: "scale(0)" },
+        "50%": { transform: "scale(1.2)" },
+        "100%": { transform: "scale(1)" }
+      },
+      // Clear filters shake
+      "shake": {
+        "0%, 100%": { transform: "translateX(0)" },
+        "25%": { transform: "translateX(-2px)" },
+        "75%": { transform: "translateX(2px)" }
+      }
+    },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         "pulse-pending": "pulse-pending 2s ease-in-out infinite",
         "success": "success 0.5s ease-out",
-        "spin-slow": "spin-slow 2s linear infinite",
-      },
+      "spin-slow": "spin-slow 2s linear infinite",
+      "dropdown-in": "dropdown-in 0.2s ease-out",
+      "dropdown-out": "dropdown-out 0.15s ease-in",
+      "badge-pop": "badge-pop 0.3s ease-out",
+      "shake": "shake 0.3s ease-in-out"
+    },
     },
   },
   plugins: [require("tailwindcss-animate")],

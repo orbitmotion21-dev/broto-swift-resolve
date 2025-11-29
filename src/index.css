@@ -197,4 +197,41 @@ All colors MUST be HSL.
     from { transform: rotate(0deg); }
     to { transform: rotate(360deg); }
   }
+  
+  /* Animated filter dropdown */
+  .filter-dropdown {
+    @apply absolute top-full left-0 mt-2 w-56 bg-card border border-border rounded-lg shadow-lg z-50;
+    @apply origin-top animate-dropdown-in;
+  }
+  
+  .filter-dropdown-closing {
+    @apply animate-dropdown-out;
+  }
+  
+  /* Filter chip with animation */
+  .filter-chip {
+    @apply inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm;
+    @apply bg-accent/15 text-accent border border-accent/30;
+    @apply transition-all duration-200 hover:bg-accent/25;
+  }
+  
+  .filter-chip-active {
+    @apply bg-accent text-accent-foreground;
+  }
+  
+  /* Search input with glow */
+  .search-input-wrapper {
+    @apply relative transition-all duration-200;
+  }
+  
+  .search-input-wrapper:focus-within {
+    @apply shadow-[0_0_0_2px_hsl(222_90%_63%_/_0.3)];
+  }
+  
+  /* Filter count badge */
+  .filter-count {
+    @apply absolute -top-1 -right-1 w-5 h-5 rounded-full bg-accent text-[10px] font-bold;
+    @apply flex items-center justify-center text-accent-foreground;
+    @apply animate-badge-pop;
+  }
 }
