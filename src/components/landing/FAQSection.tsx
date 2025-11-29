@@ -13,9 +13,9 @@ export const FAQSection = () => {
         "Simply log in to your student account, click on 'Submit Complaint', fill in the details including category, description, and attach any photos or videos if needed. Your complaint will be instantly submitted to the admin team.",
     },
     {
-      question: "How does BrotoRaise notify users?",
+      question: "How does Brotodesk notify users?",
       answer:
-        "BrotoRaise provides real-time status updates through the platform. Students receive notifications when their complaint status changes from 'Pending' to 'In Progress' and finally to 'Resolved'. You can track your complaint anytime through your dashboard.",
+        "Brotodesk provides real-time status updates through the platform. Students receive notifications when their complaint status changes from 'Pending' to 'In Progress' and finally to 'Resolved'. You can track your complaint anytime through your dashboard.",
     },
     {
       question: "Can admins filter complaints?",
@@ -25,7 +25,7 @@ export const FAQSection = () => {
     {
       question: "Is my data safe?",
       answer:
-        "Absolutely. BrotoRaise uses industry-standard encryption for all data storage and transmission. Your personal information and complaint details are securely stored and only accessible to authorized administrators.",
+        "Absolutely. Brotodesk uses industry-standard encryption for all data storage and transmission. Your personal information and complaint details are securely stored and only accessible to authorized administrators.",
     },
   ];
 
@@ -37,7 +37,7 @@ export const FAQSection = () => {
             Frequently Asked Questions
           </h2>
           <p className="text-xl text-muted-foreground">
-            Everything you need to know about BrotoRaise
+            Everything you need to know about Brotodesk
           </p>
         </div>
 
