@@ -337,7 +337,7 @@ const SubmitComplaint = () => {
                 />
                 <label
                   htmlFor="image-upload"
-                  className={`flex items-center justify-center gap-2 p-4 border-2 border-dashed rounded-md cursor-pointer hover:bg-accent transition-colors ${
+                  className={`flex items-center justify-center gap-2 p-4 border-2 border-dashed border-border rounded-md cursor-pointer hover:border-accent/50 hover:bg-accent/10 transition-all duration-200 ${
                     images.length >= 3 ? 'opacity-50 cursor-not-allowed' : ''
                   }`}
                 >
@@ -358,9 +358,9 @@ const SubmitComplaint = () => {
                       <button
                         type="button"
                         onClick={() => removeImage(index)}
-                        className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1 hover:bg-destructive/90"
+                        className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-card border border-border text-muted-foreground hover:text-destructive hover:bg-destructive/15 flex items-center justify-center transition-all duration-200"
                       >
-                        <X className="h-4 w-4" />
+                        <X className="h-3 w-3" />
                       </button>
                     </div>
                   ))}
@@ -381,7 +381,7 @@ const SubmitComplaint = () => {
                 />
                 <label
                   htmlFor="video-upload"
-                  className={`flex items-center justify-center gap-2 p-4 border-2 border-dashed rounded-md cursor-pointer hover:bg-accent transition-colors ${
+                  className={`flex items-center justify-center gap-2 p-4 border-2 border-dashed border-border rounded-md cursor-pointer hover:border-accent/50 hover:bg-accent/10 transition-all duration-200 ${
                     video ? 'opacity-50 cursor-not-allowed' : ''
                   }`}
                 >
@@ -400,9 +400,9 @@ const SubmitComplaint = () => {
                   <button
                     type="button"
                     onClick={removeVideo}
-                    className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1 hover:bg-destructive/90"
+                    className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-card border border-border text-muted-foreground hover:text-destructive hover:bg-destructive/15 flex items-center justify-center transition-all duration-200"
                   >
-                    <X className="h-4 w-4" />
+                    <X className="h-3 w-3" />
                   </button>
                 </div>
               )}
