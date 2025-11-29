@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-import { Loader2, ArrowLeft, MapPin, Clock, AlertCircle, FileText, User, Phone } from 'lucide-react';
+import { Loader2, ArrowLeft, MapPin, Clock, AlertCircle, FileText, User, Phone, Video } from 'lucide-react';
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { useState } from 'react';
@@ -20,6 +20,7 @@ const AdminComplaintDetails = () => {
   
   const [status, setStatus] = useState('');
   const [resolutionNotes, setResolutionNotes] = useState('');
+  const [isCreatingRoom, setIsCreatingRoom] = useState(false);
 
   // Fetch complaint details with student profile
   const { data: complaint, isLoading: complaintLoading } = useQuery({
@@ -106,6 +107,66 @@ const AdminComplaintDetails = () => {
       console.error('Update error:', error);
     },
   });
+
+  // Fetch active video call
+  const { data: activeVideoCall } = useQuery({
+    queryKey: ['video-call', id],
+    queryFn: async () => {
+      if (!id) return null;
+      
+      const { data, error } = await supabase
+        .from('video_calls')
+        .select('*')
+        .eq('complaint_id', id)
+        .eq('status', 'active')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!id,
+    refetchInterval: 5000,
+  });
+
+  const handleStartVideoCall = async () => {
+    if (!id) return;
+    
+    setIsCreatingRoom(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('create-video-room', {
+        body: { complaintId: id }
+      });
+
+      if (error) throw error;
+
+      if (data?.roomUrl) {
+        toast({
+          title: 'Video Call Started',
+          description: 'Opening video call room...',
+        });
+        
+        window.open(data.roomUrl, '_blank', 'width=1200,height=800');
+        queryClient.invalidateQueries({ queryKey: ['video-call', id] });
+      }
+    } catch (error) {
+      console.error('Error starting video call:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to start video call. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsCreatingRoom(false);
+    }
+  };
+
+  const handleJoinCall = () => {
+    if (!activeVideoCall) return;
+    const roomUrl = `https://broto-raise.daily.co/${activeVideoCall.room_id}`;
+    window.open(roomUrl, '_blank', 'width=1200,height=800');
+  };
 
   const getStatusVariant = (status: string) => {
     switch (status) {
@@ -318,11 +379,54 @@ const AdminComplaintDetails = () => {
                       </div>
                     </div>
                   )}
-                </CardContent>
-              </Card>
-            )}
+                 </CardContent>
+               </Card>
+             )}
 
-            {/* Update Status */}
+             {/* Video Call */}
+             <Card>
+               <CardHeader>
+                 <CardTitle>Video Call</CardTitle>
+               </CardHeader>
+               <CardContent className="space-y-3">
+                 {activeVideoCall ? (
+                   <div className="space-y-3">
+                     <div className="p-3 bg-secondary rounded-lg">
+                       <p className="text-sm text-muted-foreground mb-1">Active call in progress</p>
+                       <p className="text-xs text-muted-foreground">Room: {activeVideoCall.room_id}</p>
+                     </div>
+                     <Button 
+                       onClick={handleJoinCall}
+                       className="w-full"
+                       variant="default"
+                     >
+                       <Video className="w-4 h-4 mr-2" />
+                       Rejoin Call
+                     </Button>
+                   </div>
+                 ) : (
+                   <Button 
+                     onClick={handleStartVideoCall}
+                     disabled={isCreatingRoom}
+                     className="w-full"
+                   >
+                     {isCreatingRoom ? (
+                       <>
+                         <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                         Creating Room...
+                       </>
+                     ) : (
+                       <>
+                         <Video className="w-4 h-4 mr-2" />
+                         Start Video Call
+                       </>
+                     )}
+                   </Button>
+                 )}
+               </CardContent>
+             </Card>
+
+             {/* Update Status */}
             <Card>
               <CardHeader>
                 <CardTitle>Update Complaint</CardTitle>
