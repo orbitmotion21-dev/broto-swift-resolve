@@ -197,7 +197,12 @@ const StudentDashboard = () => {
             </div>
           </div>
           <div className="flex gap-2">
-            <Button variant="ghost" size="icon" onClick={() => navigate('/student/settings')}>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="text-muted-foreground hover:text-accent hover:bg-accent/15"
+              onClick={() => navigate('/student/settings')}
+            >
               <Settings className="w-5 h-5" />
             </Button>
             <Button variant="outline" onClick={signOut}>
@@ -328,7 +333,7 @@ const StudentDashboard = () => {
                             <Button 
                               variant="ghost" 
                               size="icon"
-                              className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                              className="text-muted-foreground hover:text-destructive hover:bg-destructive/15"
                               onClick={(e) => e.stopPropagation()}
                             >
                               <Trash2 className="w-4 h-4" />

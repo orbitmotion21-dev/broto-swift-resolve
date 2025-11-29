@@ -95,13 +95,13 @@ const VoiceInputButton = ({ onTranscript, className }: VoiceInputButtonProps) =>
       variant="ghost"
       size="icon"
       onClick={toggleListening}
-      className={className}
+      className={`text-muted-foreground hover:text-accent hover:bg-accent/15 ${className}`}
       title={isListening ? 'Stop listening' : 'Start voice input'}
     >
       {isListening ? (
         <MicOff className="h-4 w-4 text-destructive animate-pulse" />
       ) : (
-        <Mic className="h-4 w-4 text-muted-foreground hover:text-primary" />
+        <Mic className="h-4 w-4" />
       )}
     </Button>
   );

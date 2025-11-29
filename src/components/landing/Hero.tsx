@@ -17,9 +17,9 @@ export const Hero = () => {
         {/* Feature Cards */}
         <div className="grid md:grid-cols-2 gap-8 mb-12 max-w-4xl mx-auto">
           {/* Student Card */}
-          <Card className="p-8 bg-card shadow-card hover:shadow-card-hover transition-all duration-300 hover:-translate-y-1 animate-fade-in-delay-2 border-border/50">
+          <Card className="p-8 bg-card shadow-card hover:shadow-hover transition-all duration-300 hover:-translate-y-1 animate-fade-in-delay-2 border-border">
             <div className="flex flex-col items-center text-center gap-4">
-              <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center">
+              <div className="w-16 h-16 rounded-2xl bg-primary/20 border border-primary/30 flex items-center justify-center">
                 <FileText className="w-8 h-8 text-primary" />
               </div>
               <h3 className="text-2xl font-semibold text-card-foreground">For Students</h3>
@@ -30,9 +30,9 @@ export const Hero = () => {
           </Card>
 
           {/* Admin Card */}
-          <Card className="p-8 bg-card shadow-card hover:shadow-card-hover transition-all duration-300 hover:-translate-y-1 animate-fade-in-delay-3 border-border/50">
+          <Card className="p-8 bg-card shadow-card hover:shadow-hover transition-all duration-300 hover:-translate-y-1 animate-fade-in-delay-3 border-border">
             <div className="flex flex-col items-center text-center gap-4">
-              <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center">
+              <div className="w-16 h-16 rounded-2xl bg-primary/20 border border-primary/30 flex items-center justify-center">
                 <Shield className="w-8 h-8 text-primary" />
               </div>
               <h3 className="text-2xl font-semibold text-card-foreground">For Admins</h3>
