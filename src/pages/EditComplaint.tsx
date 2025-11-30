@@ -12,7 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import { ArrowLeft, Upload, X, Loader2 } from 'lucide-react';
+import { ArrowLeft, Upload, X, Loader2, Sparkles } from 'lucide-react';
 import VoiceInputButton from '@/components/VoiceInputButton';
 
 const complaintSchema = z.object({
@@ -44,6 +44,7 @@ const EditComplaint = () => {
   const [newVideoPreview, setNewVideoPreview] = useState<string | null>(null);
   const [existingMedia, setExistingMedia] = useState<ExistingMedia[]>([]);
   const [mediaToDelete, setMediaToDelete] = useState<ExistingMedia[]>([]);
+  const [isFormatting, setIsFormatting] = useState(false);
 
   const { register, handleSubmit, formState: { errors }, setValue, reset } = useForm<ComplaintFormData>({
     resolver: zodResolver(complaintSchema),
@@ -338,6 +339,51 @@ const EditComplaint = () => {
     setValue('description', currentValue ? currentValue + ' ' + text : text);
   };
 
+  const handleFormatDescription = async () => {
+    const descEl = document.getElementById('description') as HTMLTextAreaElement;
+    const catEl = document.getElementById('category') as HTMLSelectElement;
+    const titleEl = document.getElementById('title') as HTMLInputElement;
+    
+    const description = descEl?.value || '';
+    const category = catEl?.value || 'General';
+    const title = titleEl?.value || '';
+    
+    if (!description || description.trim().length < 10) {
+      toast.error('Please enter a brief description first (at least 10 characters)');
+      return;
+    }
+    
+    setIsFormatting(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('format-complaint', {
+        body: { description, category, title }
+      });
+      
+      if (error) {
+        if (error.message?.includes('429')) {
+          toast.error('Rate limit reached. Please try again in a moment.');
+        } else if (error.message?.includes('402')) {
+          toast.error('AI service temporarily unavailable.');
+        } else {
+          throw error;
+        }
+        return;
+      }
+      
+      if (data?.formattedText) {
+        setValue('description', data.formattedText);
+        toast.success('Description formatted successfully!');
+      } else if (data?.error) {
+        toast.error(data.error);
+      }
+    } catch (error: any) {
+      console.error('Format error:', error);
+      toast.error('Failed to format description. Please try again.');
+    } finally {
+      setIsFormatting(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background p-4 md:p-8">
       <div className="max-w-3xl mx-auto">
@@ -395,7 +441,24 @@ const EditComplaint = () => {
             <div>
               <div className="flex items-center justify-between">
                 <Label htmlFor="description">Description *</Label>
-                <VoiceInputButton onTranscript={handleDescriptionTranscript} />
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleFormatDescription}
+                    disabled={isFormatting}
+                    className="text-xs h-8"
+                  >
+                    {isFormatting ? (
+                      <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                    ) : (
+                      <Sparkles className="w-3 h-3 mr-1" />
+                    )}
+                    Smart Format
+                  </Button>
+                  <VoiceInputButton onTranscript={handleDescriptionTranscript} />
+                </div>
               </div>
               <Textarea
                 id="description"
@@ -403,6 +466,9 @@ const EditComplaint = () => {
                 placeholder="Provide detailed information about your complaint"
                 className="mt-1 min-h-[120px]"
               />
+              <p className="text-xs text-muted-foreground mt-1">
+                💡 Tip: Enter a brief description and click "Smart Format" to expand it into a formal complaint
+              </p>
               {errors.description && (
                 <p className="text-sm text-destructive mt-1">{errors.description.message}</p>
               )}

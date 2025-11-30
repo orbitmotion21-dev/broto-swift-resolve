@@ -2,3 +2,6 @@ project_id = "yuleconpaounxowtysow"
 
 [functions.create-video-room]
 verify_jwt = true
+
+[functions.format-complaint]
+verify_jwt = false
