@@ -8,11 +8,22 @@ import { StatusBadge } from '@/components/StatusBadge';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-import { Loader2, ArrowLeft, MapPin, Clock, AlertCircle, FileText, User, Phone, Video } from 'lucide-react';
+import { Loader2, ArrowLeft, MapPin, Clock, AlertCircle, FileText, User, Phone, Video, Pencil, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { useState } from 'react';
 import VoiceInputButton from '@/components/VoiceInputButton';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 const AdminComplaintDetails = () => {
   const { id } = useParams<{ id: string }>();
@@ -170,6 +181,52 @@ const AdminComplaintDetails = () => {
     window.open(roomUrl, '_blank', 'width=1200,height=800');
   };
 
+  // Delete complaint mutation
+  const deleteMutation = useMutation({
+    mutationFn: async () => {
+      if (!id) throw new Error('No complaint ID');
+      
+      // First, delete all media from storage
+      if (media && media.length > 0) {
+        for (const item of media) {
+          const url = new URL(item.file_url);
+          const pathParts = url.pathname.split('/');
+          const bucketIndex = pathParts.indexOf('storage') + 2;
+          const bucket = pathParts[bucketIndex];
+          const filePath = pathParts.slice(bucketIndex + 1).join('/');
+          
+          if (bucket && filePath) {
+            await supabase.storage.from(bucket).remove([filePath]);
+          }
+        }
+      }
+
+      // Delete complaint (media records will cascade delete)
+      const { error } = await supabase
+        .from('complaints')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Complaint Deleted',
+        description: 'The complaint has been permanently deleted.',
+      });
+      queryClient.invalidateQueries({ queryKey: ['admin-complaints'] });
+      navigate('/admin/dashboard');
+    },
+    onError: (error) => {
+      toast({
+        title: 'Error',
+        description: 'Failed to delete complaint. Please try again.',
+        variant: 'destructive',
+      });
+      console.error('Delete error:', error);
+    },
+  });
+
 
   const getUrgencyColor = (urgency: string) => {
     switch (urgency) {
@@ -209,14 +266,59 @@ const AdminComplaintDetails = () => {
   return (
     <div className="min-h-screen bg-background p-8">
       <div className="max-w-5xl mx-auto">
-        <Button 
-          variant="outline" 
-          onClick={() => navigate('/admin/dashboard')}
-          className="mb-6"
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back to Dashboard
-        </Button>
+        <div className="flex items-center justify-between mb-6">
+          <Button 
+            variant="outline" 
+            onClick={() => navigate('/admin/dashboard')}
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Dashboard
+          </Button>
+
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={() => navigate(`/admin/complaint/${id}/edit`)}
+            >
+              <Pencil className="w-4 h-4 mr-2" />
+              Edit
+            </Button>
+
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="destructive">
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Delete
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Delete Complaint?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This action cannot be undone. This will permanently delete the complaint
+                    and all associated media files.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={() => deleteMutation.mutate()}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  >
+                    {deleteMutation.isPending ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Deleting...
+                      </>
+                    ) : (
+                      'Delete'
+                    )}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
+        </div>
 
         <div className="grid gap-6 lg:grid-cols-3">
           {/* Main Content - Left Column */}
