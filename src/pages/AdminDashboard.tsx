@@ -10,6 +10,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Loader2, Clock, AlertCircle, TrendingUp, CheckCircle, FileText, MapPin } from 'lucide-react';
 import { format } from 'date-fns';
 import { ComplaintFilters, FilterState } from '@/components/ComplaintFilters';
+import Chatbot from '@/components/Chatbot';
 
 const AdminDashboard = () => {
   const { profile, signOut } = useAuth();
@@ -255,6 +256,7 @@ const AdminDashboard = () => {
           </Card>
         )}
       </div>
+      <Chatbot userRole="admin" />
     </div>
   );
 };

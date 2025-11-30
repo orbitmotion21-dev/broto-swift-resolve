@@ -14,6 +14,7 @@ import { format, formatDistanceToNow } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import VideoCallPopup from '@/components/VideoCallPopup';
 import { ComplaintFilters, FilterState } from '@/components/ComplaintFilters';
+import Chatbot from '@/components/Chatbot';
 
 const StudentDashboard = () => {
   const { profile, user, signOut } = useAuth();
@@ -456,8 +457,9 @@ const StudentDashboard = () => {
           </Card>
         )}
       </div>
-      
+
       <VideoCallPopup />
+      <Chatbot userRole="student" />
     </div>
   );
 };
