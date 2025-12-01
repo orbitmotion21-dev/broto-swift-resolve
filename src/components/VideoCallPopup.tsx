@@ -83,7 +83,7 @@ const VideoCallPopup = ({ onDismiss }: VideoCallPopupProps) => {
     if (!activeCall) return;
 
     // Get room URL from Daily.co
-    const roomUrl = `https://broto-raise.daily.co/${activeCall.room_id}`;
+    const roomUrl = `https://fahan.daily.co/${activeCall.room_id}`;
     
     // Open in new window
     window.open(roomUrl, '_blank', 'width=1200,height=800');

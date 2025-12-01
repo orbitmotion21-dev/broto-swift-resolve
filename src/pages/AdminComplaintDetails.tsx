@@ -177,7 +177,7 @@ const AdminComplaintDetails = () => {
 
   const handleJoinCall = () => {
     if (!activeVideoCall) return;
-    const roomUrl = `https://broto-raise.daily.co/${activeVideoCall.room_id}`;
+    const roomUrl = `https://fahan.daily.co/${activeVideoCall.room_id}`;
     window.open(roomUrl, '_blank', 'width=1200,height=800');
   };
 
