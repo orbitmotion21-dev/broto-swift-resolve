@@ -131,7 +131,7 @@ serve(async (req) => {
       .from('notifications')
       .insert({
         user_id: complaint.student_id,
-        type: 'video_call_request',
+        type: 'call_request',
         message: `Admin has started a video call regarding: "${complaint.title}"`,
         complaint_id: complaintId,
       });
