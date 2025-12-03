@@ -79,8 +79,9 @@ serve(async (req) => {
       );
     }
 
-    // Create Daily.co room
+    // Create Daily.co room with 24 hour expiration
     const roomName = `complaint-${complaintId}-${Date.now()}`;
+    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours from now
     const dailyResponse = await fetch('https://api.daily.co/v1/rooms', {
       method: 'POST',
       headers: {
@@ -91,7 +92,7 @@ serve(async (req) => {
         name: roomName,
         privacy: 'public',
         properties: {
-          exp: Math.floor(Date.now() / 1000) + 3600, // 1 hour from now
+          exp: Math.floor(expiresAt.getTime() / 1000), // 24 hours from now
           enable_screenshare: true,
           enable_chat: true,
           start_video_off: false,
@@ -109,12 +110,14 @@ serve(async (req) => {
     const roomData = await dailyResponse.json();
     console.log('Room created:', roomData);
 
-    // Store video call record
+    // Store video call record with expiration time and room URL
     const { data: videoCall, error: videoCallError } = await supabase
       .from('video_calls')
       .insert({
         complaint_id: complaintId,
         room_id: roomData.name,
+        room_url: roomData.url,
+        expires_at: expiresAt.toISOString(),
         status: 'active',
         initiated_by_admin: true,
       })
