@@ -39,7 +39,13 @@ const VideoCallPopup = ({ onDismiss }: VideoCallPopupProps) => {
         .order('created_at', { ascending: false })
         .limit(1);
 
-      return videoCalls && videoCalls.length > 0 ? videoCalls[0] : null;
+      // Filter out expired calls
+      const validCalls = videoCalls?.filter(call => {
+        if (!call.expires_at) return true; // Legacy calls without expiration
+        return new Date(call.expires_at) > new Date();
+      });
+
+      return validCalls && validCalls.length > 0 ? validCalls[0] : null;
     },
     enabled: !!user?.id && !dismissed,
     refetchInterval: 5000, // Check every 5 seconds
@@ -82,8 +88,8 @@ const VideoCallPopup = ({ onDismiss }: VideoCallPopupProps) => {
   const handleJoinCall = async () => {
     if (!activeCall) return;
 
-    // Get room URL from Daily.co
-    const roomUrl = `https://fahan.daily.co/${activeCall.room_id}`;
+    // Use stored room URL or fallback to constructed URL
+    const roomUrl = activeCall.room_url || `https://fahan.daily.co/${activeCall.room_id}`;
     
     // Open in new window
     window.open(roomUrl, '_blank', 'width=1200,height=800');

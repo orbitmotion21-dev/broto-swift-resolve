@@ -190,27 +190,33 @@ export type Database = {
           complaint_id: string
           created_at: string
           ended_at: string | null
+          expires_at: string | null
           id: string
           initiated_by_admin: boolean
           room_id: string
+          room_url: string | null
           status: string
         }
         Insert: {
           complaint_id: string
           created_at?: string
           ended_at?: string | null
+          expires_at?: string | null
           id?: string
           initiated_by_admin?: boolean
           room_id: string
+          room_url?: string | null
           status?: string
         }
         Update: {
           complaint_id?: string
           created_at?: string
           ended_at?: string | null
+          expires_at?: string | null
           id?: string
           initiated_by_admin?: boolean
           room_id?: string
+          room_url?: string | null
           status?: string
         }
         Relationships: [

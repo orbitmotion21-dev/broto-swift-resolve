@@ -71,6 +71,12 @@ const ComplaintDetails = () => {
         .maybeSingle();
 
       if (error) throw error;
+      
+      // Check if call is expired
+      if (data && data.expires_at && new Date(data.expires_at) < new Date()) {
+        return null; // Treat expired calls as inactive
+      }
+      
       return data;
     },
     enabled: !!id,
@@ -79,7 +85,8 @@ const ComplaintDetails = () => {
 
   const handleJoinCall = () => {
     if (!activeVideoCall) return;
-    const roomUrl = `https://fahan.daily.co/${activeVideoCall.room_id}`;
+    // Use stored room URL or fallback to constructed URL
+    const roomUrl = activeVideoCall.room_url || `https://fahan.daily.co/${activeVideoCall.room_id}`;
     window.open(roomUrl, '_blank', 'width=1200,height=800');
   };
 
