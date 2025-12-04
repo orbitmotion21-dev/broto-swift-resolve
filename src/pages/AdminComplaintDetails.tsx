@@ -8,11 +8,12 @@ import { StatusBadge } from '@/components/StatusBadge';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-import { Loader2, ArrowLeft, MapPin, Clock, AlertCircle, FileText, User, Phone, Video, Pencil, Trash2 } from 'lucide-react';
+import { Loader2, ArrowLeft, MapPin, Clock, AlertCircle, FileText, User, Phone as PhoneIcon, Video, Pencil, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { useState } from 'react';
 import VoiceInputButton from '@/components/VoiceInputButton';
+import VoiceCallButton from '@/components/VoiceCallButton';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -467,7 +468,7 @@ const AdminComplaintDetails = () => {
                   )}
                   {complaint.profiles.phone && (
                     <div className="flex items-center gap-2">
-                      <Phone className="w-4 h-4 text-muted-foreground" />
+                      <PhoneIcon className="w-4 h-4 text-muted-foreground" />
                       <div>
                         <p className="text-sm text-muted-foreground">Phone</p>
                         <p className="font-medium">{complaint.profiles.phone}</p>
@@ -478,7 +479,21 @@ const AdminComplaintDetails = () => {
                </Card>
              )}
 
-             {/* Video Call */}
+             {/* Voice Call (VideoSDK) */}
+             <Card>
+               <CardHeader>
+                 <CardTitle>Voice Call</CardTitle>
+               </CardHeader>
+               <CardContent>
+                 <VoiceCallButton
+                   complaintId={id!}
+                   participantName="Admin"
+                   calleeName={complaint.profiles?.name || 'Student'}
+                 />
+               </CardContent>
+             </Card>
+
+             {/* Video Call (Daily.co) */}
              <Card>
                <CardHeader>
                  <CardTitle>Video Call</CardTitle>
