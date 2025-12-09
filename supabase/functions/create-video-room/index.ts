@@ -21,10 +21,12 @@ serve(async (req) => {
       );
     }
 
-    // Get Daily.co API key
-    const DAILY_API_KEY = Deno.env.get('DAILY_API_KEY');
-    if (!DAILY_API_KEY) {
-      throw new Error('DAILY_API_KEY is not configured');
+    // Get Zego credentials
+    const ZEGO_APP_ID = Deno.env.get('ZEGO_APP_ID');
+    const ZEGO_APP_SIGN = Deno.env.get('ZEGO_APP_SIGN');
+    
+    if (!ZEGO_APP_ID || !ZEGO_APP_SIGN) {
+      throw new Error('ZEGO credentials are not configured');
     }
 
     // Initialize Supabase client
@@ -74,42 +76,19 @@ serve(async (req) => {
       );
     }
 
-    // Create Daily.co room with 1 hour expiration
+    // Generate unique room ID for Zego
+    const roomId = `brotodesk-${complaintId.substring(0, 8)}-${Date.now()}`;
     const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour from now
-    
-    console.log('Creating Daily.co room...');
-    const dailyResponse = await fetch('https://api.daily.co/v1/rooms', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${DAILY_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        privacy: 'public',
-        properties: {
-          exp: Math.round(Date.now() / 1000) + 3600, // 1 hour from now
-          enable_chat: true,
-          enable_screenshare: true,
-        },
-      }),
-    });
 
-    if (!dailyResponse.ok) {
-      const error = await dailyResponse.text();
-      console.error('Daily.co API error:', error);
-      throw new Error('Failed to create video room');
-    }
+    console.log('Creating Zego room:', roomId);
 
-    const roomData = await dailyResponse.json();
-    console.log('Room created:', roomData);
-
-    // Store video call record with expiration time and room URL
+    // Store video call record with room info
     const { data: videoCall, error: videoCallError } = await supabase
       .from('video_calls')
       .insert({
         complaint_id: complaintId,
-        room_id: roomData.name,
-        room_url: roomData.url,
+        room_id: roomId,
+        room_url: null, // Zego doesn't use URLs, uses room IDs
         expires_at: expiresAt.toISOString(),
         status: 'active',
         initiated_by_admin: isAdmin,
@@ -134,12 +113,12 @@ serve(async (req) => {
           complaint_id: complaintId,
         });
     }
-    // Note: Students can't create notifications for admins due to RLS
 
     return new Response(
       JSON.stringify({
-        roomUrl: roomData.url,
-        roomName: roomData.name,
+        roomId: roomId,
+        appId: parseInt(ZEGO_APP_ID),
+        appSign: ZEGO_APP_SIGN,
         videoCallId: videoCall.id,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
