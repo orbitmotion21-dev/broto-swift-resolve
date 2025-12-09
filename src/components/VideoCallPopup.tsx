@@ -2,11 +2,10 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Video, Phone, X } from 'lucide-react';
+import { Video, X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useQuery } from '@tanstack/react-query';
-import VoiceCallUI from './VoiceCallUI';
 
 interface VideoCallPopupProps {
   onDismiss?: () => void;
@@ -16,8 +15,6 @@ const VideoCallPopup = ({ onDismiss }: VideoCallPopupProps) => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [dismissed, setDismissed] = useState(false);
-  const [isInVoiceCall, setIsInVoiceCall] = useState(false);
-  const [voiceCallData, setVoiceCallData] = useState<{ roomId: string; token: string } | null>(null);
 
   // Fetch active video calls
   const { data: activeCall, refetch } = useQuery({
@@ -44,23 +41,19 @@ const VideoCallPopup = ({ onDismiss }: VideoCallPopupProps) => {
 
       // Filter out expired calls
       const validCalls = videoCalls?.filter(call => {
-        if (!call.expires_at) return true; // Legacy calls without expiration
+        if (!call.expires_at) return true;
         return new Date(call.expires_at) > new Date();
       });
 
       return validCalls && validCalls.length > 0 ? validCalls[0] : null;
     },
     enabled: !!user?.id && !dismissed,
-    refetchInterval: 5000, // Check every 5 seconds
+    refetchInterval: 5000,
   });
-
-  // Check if this is a VideoSDK call
-  const isVideoSDKCall = activeCall?.room_url?.startsWith('videosdk://');
 
   useEffect(() => {
     if (!user?.id || dismissed) return;
 
-    // Set up real-time subscription for video call notifications
     const channel = supabase
       .channel('video-call-notifications')
       .on(
@@ -71,7 +64,6 @@ const VideoCallPopup = ({ onDismiss }: VideoCallPopupProps) => {
           table: 'video_calls',
         },
         async (payload) => {
-          // Check if this video call is for the current user's complaint
           const { data: complaint } = await supabase
             .from('complaints')
             .select('student_id')
@@ -79,7 +71,6 @@ const VideoCallPopup = ({ onDismiss }: VideoCallPopupProps) => {
             .single();
 
           if (complaint?.student_id === user.id) {
-            // Refetch to show the popup
             setDismissed(false);
             refetch();
           }
@@ -92,47 +83,11 @@ const VideoCallPopup = ({ onDismiss }: VideoCallPopupProps) => {
     };
   }, [user?.id, dismissed, refetch]);
 
-  const handleJoinVideoCall = async () => {
-    if (!activeCall) return;
-
-    // Use stored room URL or fallback to constructed URL
-    const roomUrl = activeCall.room_url || `https://fahan.daily.co/${activeCall.room_id}`;
+  const handleJoinCall = async () => {
+    if (!activeCall?.room_url) return;
     
-    // Open in new window
-    window.open(roomUrl, '_blank', 'width=1200,height=800');
-    
-    // Navigate to complaint details
+    window.open(activeCall.room_url, '_blank', 'width=1200,height=800');
     navigate(`/student/complaint/${activeCall.complaint_id}`);
-    
-    handleDismiss();
-  };
-
-  const handleJoinVoiceCall = async () => {
-    if (!activeCall) return;
-
-    try {
-      // Get token from edge function
-      const { data, error } = await supabase.functions.invoke('create-voice-room', {
-        body: { complaintId: activeCall.complaint_id },
-      });
-
-      if (error) throw error;
-
-      if (data.roomId && data.token) {
-        setVoiceCallData({ roomId: data.roomId, token: data.token });
-        setIsInVoiceCall(true);
-      }
-    } catch (err) {
-      console.error('Failed to join voice call:', err);
-      // Use the existing room ID
-      setVoiceCallData({ roomId: activeCall.room_id, token: '' });
-      setIsInVoiceCall(true);
-    }
-  };
-
-  const handleVoiceCallEnd = () => {
-    setIsInVoiceCall(false);
-    setVoiceCallData(null);
     handleDismiss();
   };
 
@@ -140,19 +95,6 @@ const VideoCallPopup = ({ onDismiss }: VideoCallPopupProps) => {
     setDismissed(true);
     onDismiss?.();
   };
-
-  // Show voice call UI if in call
-  if (isInVoiceCall && voiceCallData) {
-    return (
-      <VoiceCallUI
-        roomId={voiceCallData.roomId}
-        token={voiceCallData.token}
-        participantName="Student"
-        calleeName="Admin"
-        onCallEnd={handleVoiceCallEnd}
-      />
-    );
-  }
 
   if (!activeCall || dismissed) return null;
 
@@ -162,14 +104,8 @@ const VideoCallPopup = ({ onDismiss }: VideoCallPopupProps) => {
         <CardHeader className="pb-3">
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-2">
-              {isVideoSDKCall ? (
-                <Phone className="w-5 h-5 text-green-500 animate-pulse" />
-              ) : (
-                <Video className="w-5 h-5 text-primary animate-pulse" />
-              )}
-              <CardTitle className="text-lg">
-                {isVideoSDKCall ? 'Voice Call Request' : 'Video Call Request'}
-              </CardTitle>
+              <Video className="w-5 h-5 text-primary animate-pulse" />
+              <CardTitle className="text-lg">Video Call Request</CardTitle>
             </div>
             <Button
               variant="ghost"
@@ -185,27 +121,11 @@ const VideoCallPopup = ({ onDismiss }: VideoCallPopupProps) => {
           </CardDescription>
         </CardHeader>
         <CardContent className="flex gap-2">
-          <Button 
-            onClick={isVideoSDKCall ? handleJoinVoiceCall : handleJoinVideoCall}
-            className={`flex-1 ${isVideoSDKCall ? 'bg-green-500 hover:bg-green-600' : ''}`}
-          >
-            {isVideoSDKCall ? (
-              <>
-                <Phone className="w-4 h-4 mr-2" />
-                Join Voice Call
-              </>
-            ) : (
-              <>
-                <Video className="w-4 h-4 mr-2" />
-                Join Call
-              </>
-            )}
+          <Button onClick={handleJoinCall} className="flex-1">
+            <Video className="w-4 h-4 mr-2" />
+            Join Call
           </Button>
-          <Button 
-            variant="outline"
-            onClick={handleDismiss}
-            className="flex-1"
-          >
+          <Button variant="outline" onClick={handleDismiss} className="flex-1">
             Later
           </Button>
         </CardContent>
