@@ -15,6 +15,7 @@ import ProfileSettings from "./pages/ProfileSettings";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminComplaintDetails from "./pages/AdminComplaintDetails";
 import AdminEditComplaint from "./pages/AdminEditComplaint";
+import VideoCallPage from "./pages/VideoCallPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -90,6 +91,14 @@ const App = () => (
               element={
                 <ProtectedRoute requiredRole="admin">
                   <AdminEditComplaint />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/video-call" 
+              element={
+                <ProtectedRoute>
+                  <VideoCallPage />
                 </ProtectedRoute>
               } 
             />

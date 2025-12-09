@@ -84,10 +84,9 @@ const VideoCallPopup = ({ onDismiss }: VideoCallPopupProps) => {
   }, [user?.id, dismissed, refetch]);
 
   const handleJoinCall = async () => {
-    if (!activeCall?.room_url) return;
+    if (!activeCall?.room_id) return;
     
-    window.open(activeCall.room_url, '_blank', 'width=1200,height=800');
-    navigate(`/student/complaint/${activeCall.complaint_id}`);
+    navigate(`/video-call?complaintId=${activeCall.complaint_id}`);
     handleDismiss();
   };
 

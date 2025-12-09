@@ -86,8 +86,8 @@ const ComplaintDetails = () => {
   });
 
   const handleJoinCall = () => {
-    if (!activeVideoCall?.room_url) return;
-    window.open(activeVideoCall.room_url, '_blank', 'width=1200,height=800');
+    if (!activeVideoCall?.room_id) return;
+    navigate(`/video-call?complaintId=${id}`);
   };
 
   const handleStartVideoCall = async () => {
@@ -100,13 +100,13 @@ const ComplaintDetails = () => {
 
       if (error) throw error;
 
-      if (data?.roomUrl) {
-        window.open(data.roomUrl, '_blank', 'width=1200,height=800');
+      if (data?.roomId) {
         queryClient.invalidateQueries({ queryKey: ['student-video-call', id] });
         toast({
           title: 'Video Call Started',
-          description: 'The video call room has been created.',
+          description: 'Connecting to video call...',
         });
+        navigate(`/video-call?roomId=${data.roomId}&appId=${data.appId}&appSign=${encodeURIComponent(data.appSign)}&complaintId=${id}`);
       }
     } catch (error) {
       console.error('Error starting video call:', error);
