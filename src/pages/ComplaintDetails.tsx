@@ -6,10 +6,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { StatusBadge } from '@/components/StatusBadge';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Loader2, ArrowLeft, MapPin, Clock, AlertCircle, FileText, Trash2, Video, Pencil } from 'lucide-react';
+import { Loader2, ArrowLeft, MapPin, Clock, AlertCircle, FileText, Trash2, Video, Pencil, Phone } from 'lucide-react';
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
+import { useState } from 'react';
 
 const ComplaintDetails = () => {
   const { id } = useParams<{ id: string }>();
@@ -17,6 +18,7 @@ const ComplaintDetails = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const [isStartingCall, setIsStartingCall] = useState(false);
 
   // Fetch complaint details
   const { data: complaint, isLoading: complaintLoading } = useQuery({
@@ -84,10 +86,38 @@ const ComplaintDetails = () => {
   });
 
   const handleJoinCall = () => {
-    if (!activeVideoCall) return;
-    // Use stored room URL or fallback to constructed URL
-    const roomUrl = activeVideoCall.room_url || `https://fahan.daily.co/${activeVideoCall.room_id}`;
-    window.open(roomUrl, '_blank', 'width=1200,height=800');
+    if (!activeVideoCall?.room_url) return;
+    window.open(activeVideoCall.room_url, '_blank', 'width=1200,height=800');
+  };
+
+  const handleStartVideoCall = async () => {
+    if (!id) return;
+    setIsStartingCall(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('create-video-room', {
+        body: { complaintId: id }
+      });
+
+      if (error) throw error;
+
+      if (data?.roomUrl) {
+        window.open(data.roomUrl, '_blank', 'width=1200,height=800');
+        queryClient.invalidateQueries({ queryKey: ['student-video-call', id] });
+        toast({
+          title: 'Video Call Started',
+          description: 'The video call room has been created.',
+        });
+      }
+    } catch (error) {
+      console.error('Error starting video call:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to start video call. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsStartingCall(false);
+    }
   };
 
   // Delete mutation
@@ -228,7 +258,7 @@ const ComplaintDetails = () => {
           )}
         </div>
 
-        {activeVideoCall && (
+        {activeVideoCall ? (
           <Card className="mb-6 bg-primary/10 border-primary">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
@@ -236,12 +266,34 @@ const ComplaintDetails = () => {
                   <Video className="w-5 h-5 text-primary animate-pulse" />
                   <div>
                     <p className="font-semibold">Video Call Active</p>
-                    <p className="text-sm text-muted-foreground">Admin is waiting for you to join</p>
+                    <p className="text-sm text-muted-foreground">Join the ongoing call</p>
                   </div>
                 </div>
                 <Button onClick={handleJoinCall}>
                   <Video className="w-4 h-4 mr-2" />
                   Join Call
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        ) : (
+          <Card className="mb-6">
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Video className="w-5 h-5 text-muted-foreground" />
+                  <div>
+                    <p className="font-semibold">Video Call</p>
+                    <p className="text-sm text-muted-foreground">Start a video call with the admin</p>
+                  </div>
+                </div>
+                <Button onClick={handleStartVideoCall} disabled={isStartingCall}>
+                  {isStartingCall ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <Video className="w-4 h-4 mr-2" />
+                  )}
+                  {isStartingCall ? 'Starting...' : 'Start Call'}
                 </Button>
               </div>
             </CardContent>
