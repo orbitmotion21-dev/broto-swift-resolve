@@ -51,19 +51,14 @@ serve(async (req) => {
       );
     }
 
-    // Verify user is admin
+    // Check user role
     const { data: roles } = await supabase
       .from('user_roles')
       .select('role')
       .eq('user_id', user.id)
       .single();
 
-    if (!roles || roles.role !== 'admin') {
-      return new Response(
-        JSON.stringify({ error: 'Only admins can create video rooms' }),
-        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
+    const isAdmin = roles?.role === 'admin';
 
     // Get complaint details and student info
     const { data: complaint, error: complaintError } = await supabase
@@ -79,9 +74,10 @@ serve(async (req) => {
       );
     }
 
-    // Create Daily.co room with 24 hour expiration
-    const roomName = `complaint-${complaintId}-${Date.now()}`;
-    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours from now
+    // Create Daily.co room with 1 hour expiration
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour from now
+    
+    console.log('Creating Daily.co room...');
     const dailyResponse = await fetch('https://api.daily.co/v1/rooms', {
       method: 'POST',
       headers: {
@@ -89,14 +85,11 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        name: roomName,
         privacy: 'public',
         properties: {
-          exp: Math.floor(expiresAt.getTime() / 1000), // 24 hours from now
-          enable_screenshare: true,
+          exp: Math.round(Date.now() / 1000) + 3600, // 1 hour from now
           enable_chat: true,
-          start_video_off: false,
-          start_audio_off: false,
+          enable_screenshare: true,
         },
       }),
     });
@@ -119,7 +112,7 @@ serve(async (req) => {
         room_url: roomData.url,
         expires_at: expiresAt.toISOString(),
         status: 'active',
-        initiated_by_admin: true,
+        initiated_by_admin: isAdmin,
       })
       .select()
       .single();
@@ -129,19 +122,19 @@ serve(async (req) => {
       throw videoCallError;
     }
 
-    // Create notification for student
-    const { error: notificationError } = await supabase
-      .from('notifications')
-      .insert({
-        user_id: complaint.student_id,
-        type: 'call_request',
-        message: `Admin has started a video call regarding: "${complaint.title}"`,
-        complaint_id: complaintId,
-      });
-
-    if (notificationError) {
-      console.error('Error creating notification:', notificationError);
+    // Create notification - notify the other party
+    if (isAdmin) {
+      // Notify student
+      await supabase
+        .from('notifications')
+        .insert({
+          user_id: complaint.student_id,
+          type: 'call_request',
+          message: `Admin has started a video call regarding: "${complaint.title}"`,
+          complaint_id: complaintId,
+        });
     }
+    // Note: Students can't create notifications for admins due to RLS
 
     return new Response(
       JSON.stringify({
